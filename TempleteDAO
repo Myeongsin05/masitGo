@@ -1,0 +1,42 @@
+	public Object templateRead(String dname) {
+		Object ob = new Object();
+		String sql = "select deptno,dname,loc from dept where dname like ?";
+		// try(객체처리-연결;대화;결과){} : try resource 구문 파일이나 DB연결 자동 자원해제..
+		try (Connection con = DBCon.con(); PreparedStatement pstmt = con.prepareStatement(sql);) {
+			// 처리코드1
+			pstmt.setString(1, "%" + dname + "%");
+			try (ResultSet rs = pstmt.executeQuery();) {
+				// 처리코드2
+				rs.next();
+			}
+		} catch (SQLException e) {
+			System.out.println("DB 에러:" + e.getMessage());
+		} catch (Exception e) {
+			System.out.println("일반 에러:" + e.getMessage());
+		}
+		return ob;
+	}
+
+	public int templateCUD(String ename) { // delete, update는 처리코드 1번만 사용!
+		int cudCnt = 0;
+		String sql = "INSERT INTO emp01(ename) values(?)";
+		try (Connection con = DBCon.con(); PreparedStatement pstmt = con.prepareStatement(sql);) {
+			con.setAutoCommit(false);
+			// 처리코드1
+			pstmt.setString(1, ename);
+
+			cudCnt = pstmt.executeUpdate();
+			if (cudCnt == 0) {
+				System.out.println("CUD 실패");
+				con.rollback();
+			} else {
+				con.commit(); // Commit the transaction
+				System.out.println("CUD 성공");
+			}
+		} catch (SQLException e) {
+			System.out.println("DB 에러:" + e.getMessage());
+		} catch (Exception e) {
+			System.out.println("일반 에러:" + e.getMessage());
+		}
+		return cudCnt;
+	}
